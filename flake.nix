@@ -31,6 +31,12 @@
           ]
         );
 
+        mkAlias =
+          alias: package:
+          pkgs.writeShellScriptBin alias ''
+            exec ${pkgs.lib.getExe package} "$@"
+          '';
+
         treefmt = treefmt-nix.lib.evalModule pkgs {
           projectRootFile = "flake.nix";
 
@@ -75,10 +81,10 @@
           text = ''pytest "$@" || { [ "$?" -eq 5 ] && echo 'No tests found; skipped.'; }'';
         };
 
-        rn = pkgs.writeShellApplication {
-          name = "rn";
-          runtimeInputs = [ python ];
-          text = ''exec python3 "$@"'';
+        check = pkgs.writeShellApplication {
+          name = "check";
+          runtimeInputs = [ pkgs.nix ];
+          text = ''exec nix flake check "''${1:-${self}}" "$@"'';
         };
 
         runCheck =
@@ -100,7 +106,11 @@
             pkgs.nixfmt
             pkgs.ruff
             pkgs.statix
-            rn
+            (mkAlias "rn" python)
+            (mkAlias "lt" lint)
+            (mkAlias "tt" test)
+            (mkAlias "fmt" treefmt.config.build.wrapper)
+            (mkAlias "chk" check)
             treefmt.config.build.wrapper
           ];
 
