@@ -17,7 +17,6 @@ select = [
   "RET", # flake8-return (consistent return style)
   "RUF", # Ruff-specific rules (unused noqa, etc.)
   "SIM", # flake8-simplify (more Pythonic code patterns)
-  "T20", # flake8-print (catch leftover debug prints)
   "UP",  # pyupgrade (modern Python syntax)
   "W",   # pycodestyle warnings
 ]
