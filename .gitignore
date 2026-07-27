@@ -1,0 +1,13 @@
+# Nix / direnv
+.direnv/
+result
+.pre-commit-config.yaml
+
+# Python
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# macOS / editor temporary files
+.DS_Store

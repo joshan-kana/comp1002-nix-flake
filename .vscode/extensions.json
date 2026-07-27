@@ -1,0 +1,12 @@
+{
+  "recommendations": [
+    "mkhl.direnv",
+    "ms-python.python",
+    "ms-python.vscode-pylance",
+    "ms-python.debugpy",
+    "charliermarsh.ruff",
+    "ms-python.mypy-type-checker",
+    "jnoortheen.nix-ide",
+    "tamasfe.even-better-toml"
+  ]
+}

@@ -1,0 +1,39 @@
+[tool.ruff]
+line-length = 100
+extend-exclude = [".direnv"]
+
+[tool.ruff.format]
+docstring-code-format = true
+
+[tool.ruff.lint]
+select = [
+  "B",   # flake8-bugbear
+  "C4",  # flake8-comprehensions
+  "D",   # pydocstyle (PEP 257 docstring conventions)
+  "E",   # pycodestyle errors (incl. comment spacing: E261–E266)
+  "F",   # Pyflakes
+  "I",   # isort (import sorting)
+  "N",   # pep8-naming (PEP 8 naming conventions)
+  "RET", # flake8-return (consistent return style)
+  "RUF", # Ruff-specific rules (unused noqa, etc.)
+  "SIM", # flake8-simplify (more Pythonic code patterns)
+  "T20", # flake8-print (catch leftover debug prints)
+  "UP",  # pyupgrade (modern Python syntax)
+  "W",   # pycodestyle warnings
+]
+ignore = [
+  "E501", # Ruff's formatter handles line length
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "pep257"
+
+[tool.mypy]
+check_untyped_defs = true
+warn_return_any = true
+warn_unused_ignores = true
+exclude = "(^|/)[.]direnv/"
+
+[tool.pytest.ini_options]
+addopts = "-ra"
+norecursedirs = [".direnv", ".git"]
