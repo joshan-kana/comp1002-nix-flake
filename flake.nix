@@ -75,6 +75,12 @@
           text = ''pytest "$@" || { [ "$?" -eq 5 ] && echo 'No tests found; skipped.'; }'';
         };
 
+        rn = pkgs.writeShellApplication {
+          name = "rn";
+          runtimeInputs = [ python ];
+          text = ''exec python3 "$@"'';
+        };
+
         runCheck =
           pkg:
           pkgs.runCommand "comp1002-${pkg.name}-check" { nativeBuildInputs = [ pkg ]; } ''
@@ -94,6 +100,7 @@
             pkgs.nixfmt
             pkgs.ruff
             pkgs.statix
+            rn
             treefmt.config.build.wrapper
           ];
 
