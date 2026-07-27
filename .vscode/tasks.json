@@ -39,6 +39,18 @@
       }
     },
     {
+      "label": "Run Python: Current File",
+      "type": "shell",
+      "command": "nix develop --command python3 ${file}",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true,
+        "focus": true
+      }
+    },
+    {
       "label": "Check: everything",
       "type": "shell",
       "command": "nix flake check",
