@@ -1,6 +1,6 @@
 [tool.ruff]
 line-length = 100
-extend-exclude = [".direnv"]
+extend-exclude = [".direnv", "unit_materials"]
 
 [tool.ruff.format]
 docstring-code-format = true
@@ -31,8 +31,8 @@ convention = "pep257"
 check_untyped_defs = true
 warn_return_any = true
 warn_unused_ignores = true
-exclude = "(^|/)[.]direnv/"
+exclude = "(^|/)([.]direnv|unit_materials)/"
 
 [tool.pytest.ini_options]
 addopts = "-ra"
-norecursedirs = [".direnv", ".git"]
+norecursedirs = [".direnv", ".git", "unit_materials"]

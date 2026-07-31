@@ -36,6 +36,14 @@
           pkgs.writeShellScriptBin alias ''
             exec ${pkgs.lib.getExe package} "$@"
           '';
+        excludedDirs = [
+          ".direnv"
+          "unit_materials"
+        ];
+
+        # Single source of truth: derive treefmt excludes and find prune args.
+        treefmtExcludes = map (d: "${d}/**") excludedDirs;
+        findPruneArgs = pkgs.lib.concatMapStringsSep " " (d: "-path ./${d} -prune -o") excludedDirs;
 
         treefmt = treefmt-nix.lib.evalModule pkgs {
           projectRootFile = "flake.nix";
@@ -49,7 +57,7 @@
           };
 
           settings = {
-            global.excludes = [ ".direnv/**" ];
+            global.excludes = treefmtExcludes;
 
             # Apply fixes before final formatting.
             formatter = {
@@ -71,7 +79,7 @@
           text = ''
             ruff check .
             statix check flake.nix
-            if find . -name '*.py' -print -quit | grep -q .; then mypy .; else echo 'No Python files found; skipping mypy.'; fi
+            if find . ${findPruneArgs} -name '*.py' -print -quit | grep -q .; then mypy .; else echo 'No Python files found; skipping mypy.'; fi
           '';
         };
 
