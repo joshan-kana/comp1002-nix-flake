@@ -97,8 +97,8 @@
 
         check = pkgs.writeShellApplication {
           name = "check";
-          runtimeInputs = [ pkgs.nix ];
-          text = ''exec nix flake check "''${1:-${self}}" "$@"'';
+          runtimeInputs = [ pkgs.pre-commit ];
+          text = ''exec pre-commit run nix-flake-check "$@"'';
         };
 
         runCheck =
@@ -158,6 +158,7 @@
           inherit
             lint
             test
+            check
             ;
           default = lint;
         };
