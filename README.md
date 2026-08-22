@@ -16,6 +16,15 @@ Nix flake COMP1002 practicals
 - direnv activation through `.envrc`
 - VS Code extensions, settings, tasks and debugger configurations
 
+## VS Code and Remote Development
+
+Install the recommended VS Code extensions for this repository, including
+Remote-SSH when opening the practical through an SSH remote host.
+
+If you also want your normal local extensions available in the remote window,
+run `Remote: Install Local Extensions in 'SSH: <host>'`, choose **Select All**,
+and choose **Install**.
+
 ## Commands
 
 ```bash

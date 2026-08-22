@@ -7,6 +7,7 @@
     "charliermarsh.ruff",
     "ms-python.mypy-type-checker",
     "jnoortheen.nix-ide",
-    "tamasfe.even-better-toml"
+    "tamasfe.even-better-toml",
+    "ms-vscode-remote.remote-ssh"
   ]
 }
