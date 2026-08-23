@@ -7,7 +7,7 @@ Nix flake for COMP1002 practicals.
 Create a practical directory from the template:
 
 ```bash
-nix flake init -t 'git+ssh://git@github.com/joshan-kana/comp1002-nix-flake.git'
+nix flake init -t 'git+ssh://git@github.com/joshan-kana/comp1002-nix-flake.git' --refresh
 direnv allow
 ```
 
@@ -23,10 +23,19 @@ After that, entering the directory activates the development environment automat
 
 ## Update
 
-Update an existing practical from the latest template:
+Update an existing practical from the latest template.
+
+Practicals without the `.comp1002-practical` marker will need it added once
+from the practical root:
 
 ```bash
-nix run 'git+ssh://git@github.com/joshan-kana/comp1002-nix-flake.git#sync'
+touch .comp1002-practical
+```
+
+Then update with:
+
+```bash
+nix run 'git+ssh://git@github.com/joshan-kana/comp1002-nix-flake.git#sync' --refresh
 direnv allow
 ```
 
