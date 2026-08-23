@@ -224,6 +224,7 @@
           formatting = treefmt.config.build.check self;
           lint = runCheck lint;
           tests = runCheck test;
+          inherit sync;
         };
       }
     )
