@@ -2,6 +2,12 @@
   "version": "2.0.0",
   "tasks": [
     {
+      "label": "Format: current file",
+      "type": "shell",
+      "command": "nix fmt -- \"${file}\"",
+      "problemMatcher": []
+    },
+    {
       "label": "Format: all",
       "type": "shell",
       "command": "nix fmt",

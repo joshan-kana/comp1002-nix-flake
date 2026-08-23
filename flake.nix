@@ -28,6 +28,23 @@
       let
         pkgs = nixpkgs.legacyPackages.${system};
 
+        templateFiles = [
+          ".envrc"
+          ".gitignore"
+          ".vscode/extensions.json"
+          ".vscode/launch.json"
+          ".vscode/settings.json"
+          ".vscode/tasks.json"
+          "flake.lock"
+          "flake.nix"
+          "pyproject.toml"
+        ];
+
+        globalExcludes = [
+          ".direnv"
+          "unit_materials"
+        ];
+
         python = pkgs.python3.withPackages (
           ps: with ps; [
             mypy
@@ -42,35 +59,47 @@
           pkgs.writeShellScriptBin alias ''
             exec ${pkgs.lib.getExe package} "$@"
           '';
-        excludedDirs = [
-          ".direnv"
-          "unit_materials"
+        findPruneArgs = pkgs.lib.concatMapStringsSep " " (dir: "-path ./${dir} -prune -o") globalExcludes;
+        markdownOptions = [
+          "--disable"
+          "MD013"
         ];
-
-        # Single source of truth: derive treefmt excludes and find prune args.
-        treefmtExcludes = map (d: "${d}/**") excludedDirs;
-        findPruneArgs = pkgs.lib.concatMapStringsSep " " (d: "-path ./${d} -prune -o") excludedDirs;
 
         treefmt = treefmt-nix.lib.evalModule pkgs {
           projectRootFile = "flake.nix";
 
           programs = {
+            deadnix.enable = true;
             nixfmt.enable = true;
             ruff-check.enable = true;
             ruff-format.enable = true;
+            rumdl-check.enable = true;
+            rumdl-format.enable = true;
             statix.enable = true;
             taplo.enable = true;
+            typos.enable = true;
           };
 
           settings = {
-            global.excludes = treefmtExcludes;
-
-            # Apply fixes before final formatting.
+            global.excludes = map (dir: "${dir}/**") globalExcludes;
             formatter = {
               ruff-check.priority = 1;
               ruff-format.priority = 2;
               statix.priority = 1;
-              nixfmt.priority = 2;
+              deadnix.priority = 2;
+              nixfmt.priority = 3;
+              rumdl-format = {
+                options = markdownOptions;
+                priority = 1;
+              };
+              rumdl-check = {
+                options = markdownOptions;
+                priority = 2;
+              };
+              typos = {
+                includes = [ "*.md" ];
+                priority = 3;
+              };
             };
           };
         };
@@ -99,6 +128,20 @@
           name = "check";
           runtimeInputs = [ pkgs.pre-commit ];
           text = ''exec pre-commit run nix-flake-check "$@"'';
+        };
+
+        sync = pkgs.writeShellApplication {
+          name = "sync";
+          runtimeInputs = [
+            pkgs.git
+            pkgs.rsync
+          ];
+          text = ''
+            root="$(git rev-parse --show-toplevel)"
+            rsync -rltp --chmod=u+w --delete-missing-args \
+              --files-from=${pkgs.writeText "template-files" (pkgs.lib.concatStringsSep "\n" templateFiles)} \
+              ${self.outPath}/ "$root/"
+          '';
         };
 
         runCheck =
@@ -159,6 +202,7 @@
             lint
             test
             check
+            sync
             ;
           default = lint;
         };
