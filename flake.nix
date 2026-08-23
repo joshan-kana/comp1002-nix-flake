@@ -27,6 +27,8 @@
       system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
+        inherit (pkgs) lib;
+        overrides = import ./overrides.nix { inherit lib pkgs; };
 
         rootMarkerFile = ".comp1002-practical";
 
@@ -48,15 +50,6 @@
           "unit_materials"
         ];
 
-        python = pkgs.python3.withPackages (
-          ps: with ps; [
-            mypy
-            numpy
-            pytest
-            pytest-cov
-          ]
-        );
-
         mkAlias =
           alias: package:
           pkgs.writeShellScriptBin alias ''
@@ -68,44 +61,96 @@
           "MD013"
         ];
 
-        treefmt = treefmt-nix.lib.evalModule pkgs {
-          projectRootFile = "flake.nix";
+        baseConfig = final: {
+          pythonPackages =
+            ps: with ps; [
+              mypy
+              numpy
+              pytest
+              pytest-cov
+            ];
 
-          programs = {
-            deadnix.enable = true;
-            nixfmt.enable = true;
-            ruff-check.enable = true;
-            ruff-format.enable = true;
-            rumdl-check.enable = true;
-            rumdl-format.enable = true;
-            statix.enable = true;
-            taplo.enable = true;
-            typos.enable = true;
-          };
+          treefmtConfig = {
+            projectRootFile = "flake.nix";
 
-          settings = {
-            global.excludes = map (dir: "${dir}/**") globalExcludes;
-            formatter = {
-              ruff-check.priority = 1;
-              ruff-format.priority = 2;
-              statix.priority = 1;
-              deadnix.priority = 2;
-              nixfmt.priority = 3;
-              rumdl-format = {
-                options = markdownOptions;
-                priority = 1;
-              };
-              rumdl-check = {
-                options = markdownOptions;
-                priority = 2;
-              };
-              typos = {
-                includes = [ "*.md" ];
-                priority = 3;
+            programs = {
+              deadnix.enable = true;
+              nixfmt.enable = true;
+              ruff-check.enable = true;
+              ruff-format.enable = true;
+              rumdl-check.enable = true;
+              rumdl-format.enable = true;
+              statix.enable = true;
+              taplo.enable = true;
+              typos.enable = true;
+            };
+
+            settings = {
+              global.excludes = map (dir: "${dir}/**") globalExcludes;
+              formatter = {
+                ruff-check.priority = 1;
+                ruff-format.priority = 2;
+                statix.priority = 1;
+                deadnix.priority = 2;
+                nixfmt.priority = 3;
+                rumdl-format = {
+                  options = markdownOptions;
+                  priority = 1;
+                };
+                rumdl-check = {
+                  options = markdownOptions;
+                  priority = 2;
+                };
+                typos = {
+                  includes = [ "*.md" ];
+                  priority = 3;
+                };
               };
             };
           };
+
+          devShellConfig = {
+            packages = [
+              final.python
+              pkgs.nixd
+              pkgs.nixfmt
+              pkgs.ruff
+              pkgs.statix
+              (mkAlias "rn" final.python)
+              (mkAlias "lt" lint)
+              (mkAlias "tt" test)
+              (mkAlias "fmt" final.treefmt.config.build.wrapper)
+              (mkAlias "chk" check)
+              final.treefmt.config.build.wrapper
+            ];
+
+            inherit
+              (
+                (pre-commit-hooks.lib.${system}.run {
+                  src = self;
+                  hooks = {
+                    nix-flake-check = {
+                      enable = true;
+                      name = "nix flake check";
+                      entry = "nix flake check";
+                      language = "system";
+                      pass_filenames = false;
+                    };
+                  };
+                })
+              )
+              shellHook
+              ;
+
+            PYTHONNOUSERSITE = "1";
+          };
+
+          python = pkgs.python3.withPackages final.pythonPackages;
+          treefmt = treefmt-nix.lib.evalModule pkgs final.treefmtConfig;
         };
+
+        config = (lib.makeExtensible baseConfig).extend overrides;
+        inherit (config) python treefmt;
 
         lint = pkgs.writeShellApplication {
           name = "lint";
@@ -169,43 +214,7 @@
 
       in
       {
-        devShells.default = pkgs.mkShell {
-          packages = [
-            python
-            pkgs.nixd
-            pkgs.nixfmt
-            pkgs.ruff
-            pkgs.statix
-            (mkAlias "rn" python)
-            (mkAlias "lt" lint)
-            (mkAlias "tt" test)
-            (mkAlias "fmt" treefmt.config.build.wrapper)
-            (mkAlias "chk" check)
-            treefmt.config.build.wrapper
-          ];
-
-          inherit
-            (
-              (pre-commit-hooks.lib.${system}.run {
-                src = self;
-                hooks = {
-                  nix-flake-check = {
-                    enable = true;
-                    name = "nix flake check";
-                    entry = "nix flake check";
-                    language = "system";
-                    pass_filenames = false;
-                  };
-                };
-              })
-            )
-            shellHook
-            ;
-
-          # Prevent packages installed with `pip install --user` outside Nix
-          # from silently leaking into this environment.
-          PYTHONNOUSERSITE = "1";
-        };
+        devShells.default = pkgs.mkShell config.devShellConfig;
 
         formatter = treefmt.config.build.wrapper;
 
