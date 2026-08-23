@@ -25,11 +25,12 @@ After that, entering the directory activates the development environment automat
 
 Update an existing practical from the latest template.
 
-Practicals without the `.comp1002-practical` marker will need it added once
-from the practical root:
+Practicals created before the marker and per-practical config were added
+need both files created once from the practical root:
 
 ```bash
 touch .comp1002-practical
+printf '_: _final: _prev:\n{ }\n' > overrides.nix
 ```
 
 Then update with:
@@ -43,6 +44,30 @@ Without direnv:
 
 ```bash
 nix develop -c $SHELL
+```
+
+## Per-practical configuration
+
+New practicals include `overrides.nix`. It is deliberately not updated by
+`sync`, so each practical can keep its own environment overrides. Older
+practicals create the no-op overlay once using the command in **Update** above.
+
+`overrides.nix` is a normal Nix overlay: `prev` is the shared template
+configuration and `final` is the configuration after overrides. For example:
+
+```nix
+{ lib, pkgs }:
+_final: prev: {
+  pythonPackages = ps: prev.pythonPackages ps ++ [ ps.pandas ];
+
+  treefmtConfig = lib.recursiveUpdate prev.treefmtConfig {
+    programs.taplo.enable = false;
+  };
+
+  devShellConfig = prev.devShellConfig // {
+    packages = prev.devShellConfig.packages ++ [ pkgs.graphviz ];
+  };
+}
 ```
 
 ## Python
