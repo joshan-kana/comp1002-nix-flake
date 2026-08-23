@@ -32,7 +32,9 @@ check_untyped_defs = true
 warn_return_any = true
 warn_unused_ignores = true
 exclude = "(^|/)([.]direnv|unit_materials)/"
+mypy_path = ["src"]
 
 [tool.pytest.ini_options]
 addopts = "-ra"
 norecursedirs = [".direnv", ".git", "unit_materials"]
+pythonpath = ["src"]
