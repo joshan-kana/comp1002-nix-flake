@@ -5,9 +5,7 @@
 
   "python.testing.pytestEnabled": true,
   "python.testing.unittestEnabled": false,
-  "python.testing.pytestArgs": [
-    "."
-  ],
+  "python.testing.pytestArgs": ["."],
   "python.testing.cwd": "${workspaceFolder}",
   "python.testing.autoTestDiscoverOnSaveEnabled": true,
 
@@ -20,17 +18,13 @@
   "mypy-type-checker.importStrategy": "fromEnvironment",
   "mypy-type-checker.reportingScope": "file",
   "mypy-type-checker.cwd": "${workspaceFolder}",
-  "mypy-type-checker.ignorePatterns": [
-    "**/.direnv/**"
-  ],
+  "mypy-type-checker.ignorePatterns": ["**/.direnv/**"],
 
   "nix.enableLanguageServer": true,
   "nix.serverSettings": {
     "nixd": {
       "formatting": {
-        "command": [
-          "nixfmt"
-        ]
+        "command": ["nixfmt"]
       }
     }
   },
@@ -48,7 +42,6 @@
     "editor.defaultFormatter": "jnoortheen.nix-ide",
     "editor.formatOnSave": false
   },
-
 
   "files.exclude": {
     "**/.direnv": true,
