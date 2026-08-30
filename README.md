@@ -89,28 +89,18 @@ Pytest automatically discovers files named `test_*.py` and `*_test.py`.
 
 ## Formatting and checks
 
-Format supported Python, Nix, TOML and Markdown files with:
+The flake provides repository-wide maintenance and checks:
 
 ```bash
+# Fix and validate the repository
 nix fmt
-```
-
-or:
-
-```bash
+# or, from the development shell
 fmt
-```
 
-Check staged files with:
-
-```bash
-chk
-```
-
-Run the full repository checks with:
-
-```bash
+# Check the repository
 nix flake check
+# or, from the development shell
+chk
 ```
 
 ## VS Code and Remote Development

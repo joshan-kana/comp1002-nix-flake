@@ -14,9 +14,7 @@
       "name": "Python: Debug pytest",
       "type": "debugpy",
       "request": "launch",
-      "purpose": [
-        "debug-test"
-      ],
+      "purpose": ["debug-test"],
       "cwd": "${workspaceFolder}",
       "console": "integratedTerminal",
       "justMyCode": true

@@ -9,7 +9,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     pre-commit-hooks = {
-      url = "github:cachix/pre-commit-hooks.nix";
+      url = "github:cachix/git-hooks.nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
@@ -56,6 +56,9 @@
             exec ${pkgs.lib.getExe package} "$@"
           '';
         findPruneArgs = pkgs.lib.concatMapStringsSep " " (dir: "-path ./${dir} -prune -o") globalExcludes;
+        gitPathspecExcludeArgs = lib.concatMapStringsSep " " (
+          dir: lib.escapeShellArg ":(exclude)${dir}/**"
+        ) globalExcludes;
         markdownOptions = [
           "--disable"
           "MD013"
@@ -76,34 +79,44 @@
             programs = {
               deadnix.enable = true;
               nixfmt.enable = true;
+              prettier = {
+                enable = true;
+                excludes = [ "*.md" ];
+              };
               ruff-check.enable = true;
               ruff-format.enable = true;
               rumdl-check.enable = true;
               rumdl-format.enable = true;
+              shellcheck = {
+                enable = true;
+                includes = [
+                  ".envrc"
+                  "**/*.sh"
+                ];
+              };
               statix.enable = true;
               taplo.enable = true;
               typos.enable = true;
             };
 
             settings = {
-              global.excludes = map (dir: "${dir}/**") globalExcludes;
+              excludes = map (dir: "${dir}/**") globalExcludes;
               formatter = {
-                ruff-check.priority = 1;
-                ruff-format.priority = 2;
+                ruff-format.priority = 1;
                 statix.priority = 1;
-                deadnix.priority = 2;
-                nixfmt.priority = 3;
-                rumdl-format = {
-                  options = markdownOptions;
-                  priority = 1;
-                };
+                nixfmt.priority = 2;
+                rumdl-format.options = markdownOptions;
                 rumdl-check = {
                   options = markdownOptions;
                   priority = 2;
                 };
+                shellcheck.options = [
+                  "-s"
+                  "bash"
+                ];
                 typos = {
                   includes = [ "*.md" ];
-                  priority = 3;
+                  priority = 1;
                 };
               };
             };
@@ -129,12 +142,21 @@
                 (pre-commit-hooks.lib.${system}.run {
                   src = self;
                   hooks = {
-                    nix-flake-check = {
+                    repo-quality = {
                       enable = true;
-                      name = "nix flake check";
-                      entry = "nix flake check";
-                      language = "system";
+                      name = "Repository formatting and linting";
+                      entry = "nix build --no-link .#checks.${system}.repo-quality";
+                      files = "\\.(json|lock|md|nix|py|sh|toml)$|^\\.envrc$";
+                      excludes = map (dir: "^${lib.escapeRegex dir}/") globalExcludes;
                       pass_filenames = false;
+                    };
+
+                    staged-whitespace = {
+                      enable = true;
+                      name = "Staged whitespace";
+                      entry = "${pkgs.lib.getExe pkgs.git} diff --check --cached -- . ${gitPathspecExcludeArgs}";
+                      pass_filenames = false;
+                      always_run = true;
                     };
                   };
                 })
@@ -172,11 +194,9 @@
           text = ''pytest "$@" || { [ "$?" -eq 5 ] && echo 'No tests found; skipped.'; }'';
         };
 
-        check = pkgs.writeShellApplication {
-          name = "check";
-          runtimeInputs = [ pkgs.pre-commit ];
-          text = ''exec pre-commit run nix-flake-check "$@"'';
-        };
+        check = pkgs.writeShellScriptBin "check" ''
+          exec nix flake check "$@"
+        '';
 
         sync = pkgs.writeShellApplication {
           name = "sync";
@@ -230,6 +250,7 @@
         };
 
         checks = {
+          repo-quality = treefmt.config.build.check self;
           formatting = treefmt.config.build.check self;
           lint = runCheck lint;
           tests = runCheck test;
